@@ -1,100 +1,98 @@
 from flask import Flask, request, jsonify
 from flask_restful import Api, Resource
 
-
 app = Flask(__name__)
 api = Api(app)
 
-# Data dummy untuk produk salon spa
-products = [
+# Contoh data produk kecantikan
+beauty_products = [
     {
-        "id": "1",
-        "name": "Body Scrub",
-        "price": 120000,
-        "description": "Layanan body scrub untuk melembutkan kulit."
+        "id": 1,
+        "name": "Serum Wajah Vitamin C",
+        "description": "Serum wajah dengan kandungan vitamin C untuk mencerahkan kulit.",
+        "price": 200,  # dalam ribuan
+        "address": "Jl. Kebon Jeruk No.10, Jakarta"
     },
     {
-        "id": "2",
-        "name": "Aromatherapy Massage",
-        "price": 150000,
-        "description": "Pijat aromaterapi untuk relaksasi."
+        "id": 2,
+        "name": "Moisturizer Gel Aloe Vera",
+        "description": "Gel pelembab dengan ekstrak aloe vera untuk menyejukkan kulit.",
+        "price": 150,  # dalam ribuan
+        "address": "Jl. Tanah Abang No.20, Jakarta"
+    },
+    {
+        "id": 3,
+        "name": "Lipstik Matte",
+        "description": "Lipstik dengan hasil akhir matte yang tahan lama.",
+        "price": 120,  # dalam ribuan
+        "address": "Jl. Sudirman No.15, Bandung"
+    },
+    {
+        "id": 4,
+        "name": "Face Mask Green Tea",
+        "description": "Masker wajah dengan ekstrak green tea untuk kulit lebih segar.",
+        "price": 50,  # dalam ribuan
+        "address": "Jl. Malioboro No.50, Yogyakarta"
+    },
+    {
+        "id": 5,
+        "name": "Shampoo Anti Ketombe",
+        "description": "Shampoo anti ketombe dengan bahan alami.",
+        "price": 75,  # dalam ribuan
+        "address": "Jl. Merdeka No.5, Surabaya"
     }
 ]
 
-
-# Endpoint untuk mendapatkan daftar produk
-class ProductList(Resource):
+class BeautyProductList(Resource):
     def get(self):
-        return {
-            "error": False,
-            "message": "success",
-            "count": len(products),
-            "products": products
-        }
+        return jsonify(beauty_products)
 
-# Endpoint untuk mendapatkan detail produk berdasarkan ID
-class ProductDetail(Resource):
+class BeautyProductDetail(Resource):
     def get(self, product_id):
-        product = find_product(product_id)
+        product = next((p for p in beauty_products if p["id"] == product_id), None)
         if product:
-            return {
-                "error": False,
-                "message": "success",
-                "product": product
-            }
-        return {"error": True, "message": "Product not found"}, 404
+            return jsonify(product)
+        return {"message": "Product not found"}, 404
 
-# Endpoint untuk menambahkan produk baru
-class AddProduct(Resource):
+class AddBeautyProduct(Resource):
     def post(self):
         data = request.get_json()
         new_product = {
-            "id": str(len(products) + 1),
-            "name": data.get("name"),
-            "price": data.get("price"),
-            "description": data.get("description")
+            "id": len(beauty_products) + 1,
+            "name": data["name"],
+            "description": data.get("description", "No description provided"),
+            "price": data["price"],
+            "address": data.get("address", "No address provided")
         }
-        products.append(new_product)
-        return {
-            "error": False,
-            "message": "Product added",
-            "product": new_product
-        }
+        beauty_products.append(new_product)
+        return jsonify(new_product)
 
-# Endpoint untuk memperbarui produk
-class UpdateProduct(Resource):
+class UpdateBeautyProduct(Resource):
     def put(self, product_id):
+        product = next((p for p in beauty_products if p["id"] == product_id), None)
+        if not product:
+            return {"message": "Product not found"}, 404
         data = request.get_json()
-        product = find_product(product_id)
-        if product:
-            product["name"] = data.get("name", product["name"])
-            product["price"] = data.get("price", product["price"])
-            product["description"] = data.get("description", product["description"])
-            return {
-                "error": False,
-                "message": "Product updated",
-                "product": product
-            }
-        return {"error": True, "message": "Product not found"}, 404
+        product.update(data)
+        return jsonify(product)
 
-# Endpoint untuk menghapus produk
-class DeleteProduct(Resource):
+class DeleteBeautyProduct(Resource):
     def delete(self, product_id):
-        product = find_product(product_id)
-        if product:
-            products.remove(product)
-            return {
-                "error": False,
-                "message": "Product deleted"
-            }
-        return {"error": True, "message": "Product not found"}, 404
+        global beauty_products
+        beauty_products = [p for p in beauty_products if p["id"] != product_id]
+        return {"message": "Product deleted successfully"}
 
-# Menambahkan endpoint ke API
-api.add_resource(ProductList, '/products')
-api.add_resource(ProductDetail, '/product/<string:product_id>')
-api.add_resource(AddProduct, '/product')
-api.add_resource(UpdateProduct, '/product/<string:product_id>')
-api.add_resource(DeleteProduct, '/product/<string:product_id>')
+# Menambahkan resource ke API
+api.add_resource(BeautyProductList, '/beauty-products')
+api.add_resource(BeautyProductDetail, '/beauty-products/<int:product_id>')
+api.add_resource(AddBeautyProduct, '/beauty-products/add')
+api.add_resource(UpdateBeautyProduct, '/beauty-products/update/<int:product_id>')
+api.add_resource(DeleteBeautyProduct, '/beauty-products/delete/<int:product_id>')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+api.add_resource(DeleteBatikProduct, '/batik-products/delete/<int:product_id>')
 
 if __name__ == '__main__':
     app.run(debug=True)
