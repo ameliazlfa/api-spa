@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_restful import Api, Resource
-from datetime import datetime
+
 
 app = Flask(__name__)
 api = Api(app)
@@ -21,9 +21,6 @@ products = [
     }
 ]
 
-# Helper function untuk menemukan produk berdasarkan ID
-def find_product(product_id):
-    return next((product for product in products if product["id"] == product_id), None)
 
 # Endpoint untuk mendapatkan daftar produk
 class ProductList(Resource):
